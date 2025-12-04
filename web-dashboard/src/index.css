@@ -1,0 +1,57 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom base styles */
+@layer base {
+  body {
+    @apply bg-slate-950 text-gray-200;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-orbitron;
+  }
+
+  p, a, button, input, textarea {
+    @apply font-inter;
+  }
+}
+
+/* Custom component classes */
+@layer components {
+  .neon-button {
+    @apply bg-slate-900 border border-neon-cyan text-neon-cyan px-4 py-2 rounded-md 
+           hover:shadow-neon-glow transition-all duration-300 ease-in-out;
+  }
+
+  .glass-panel {
+    @apply bg-slate-900/70 backdrop-blur-xs border border-slate-800 rounded-2xl shadow-lg p-6;
+  }
+  
+  .nav-rail {
+    @apply h-screen w-16 bg-slate-900 border-r border-slate-800 fixed left-0 top-0;
+  }
+  
+  .nav-icon {
+    @apply w-10 h-10 text-gray-400 hover:text-neon-cyan my-6 mx-auto transition-colors duration-200;
+  }
+  
+  .map-container {
+    @apply ml-16 h-screen w-[calc(100%-4rem)] bg-slate-950;
+  }
+
+  .danger-alert {
+    @apply bg-danger/20 border border-danger text-white p-4 rounded-md;
+  }
+}
+
+/* Load fonts */
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap');
+
+/* Global styles */
+html, body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
