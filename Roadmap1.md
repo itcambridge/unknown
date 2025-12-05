@@ -11,6 +11,50 @@ Vibe: **Year 2100 / Futuristic / Active Team Ops**
 
 ---
 
+## Development & Deployment Workflow
+
+### Local to Production Process
+
+**1. Local Development (Your PC)**
+- Make code changes locally
+- Run local tests to verify:
+  - Backend: `cd backend && uvicorn app.main:app --reload`
+  - Web Dashboard: `cd web-dashboard && npm run dev`
+  - Mobile: `cd mobile && npm start`
+- **Important:** Run `npm install` in web-dashboard whenever package.json changes to update package-lock.json
+- Commit and push changes:
+  ```bash
+  git add .
+  git commit -m "Your descriptive message"
+  git push origin master
+  ```
+
+**2. Deployment to Linode Server**
+- SSH into your Linode server
+- Pull latest changes: `cd ~/unknown && git pull origin master`
+- Build and run Docker containers: `docker-compose up -d --build`
+- Verify: `docker-compose ps`
+
+### Key Guidelines
+
+1. **Package Management:**
+   - Always update package-lock.json locally when changing package.json
+   - Run `npm install` before committing dependency changes
+
+2. **Docker Build Process:**
+   - Dockerfiles handle installation and building
+   - Web dashboard uses `npm install` in Dockerfile to ensure dependencies resolve
+
+3. **Code Transfer:**
+   - All code transfers via Git: Local → GitHub → Linode
+   - No need for direct file transfers
+
+4. **Environment Configuration:**
+   - Local: Use .env files for development
+   - Production: Configure via docker-compose.yml or mounted .env file
+
+---
+
 ## 0. Tech & Design Assumptions
 
 ### Monorepo structure
@@ -556,4 +600,3 @@ Note: media paths will live in Storage, not in a table for now, or optionally in
    - **Supabase** for Auth, DB, Realtime, Storage.
    - **FastAPI** for OpenAI + email + protected operations.
 4. Keep the **“year 2100 team ops”** aesthetic consistent across web + mobile.
-
