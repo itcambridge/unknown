@@ -7,15 +7,19 @@ export default {
   theme: {
     extend: {
       colors: {
-        'slate-950': '#020617',
-        'slate-900': '#0f172a',
-        'slate-800': '#1e293b',
+        slate: {
+          950: '#020617',
+          900: '#0f172a',
+          800: '#1e293b',
+        },
+        gray: {
+          200: '#e5e7eb',
+          400: '#9ca3af',
+        },
         'neon-cyan': '#22d3ee',
         'neon-magenta': '#e879f9',
         'electric-lime': '#a3e635',
         'danger': '#f97373',
-        'gray-200': '#e5e7eb',
-        'gray-400': '#9ca3af',
       },
       fontFamily: {
         'orbitron': ['Orbitron', 'sans-serif'],

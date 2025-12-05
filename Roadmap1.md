@@ -83,7 +83,7 @@ Environment variables (root-level and app-specific):
 - `MAP_API_KEY`
 - `BACKEND_BASE_URL` (for web + mobile to call FastAPI)
 
-### Design system – “2100 Active Team”
+### Design system – "2100 Active Team"
 
 - **Mode**: Dark by default
 
@@ -280,7 +280,7 @@ Note: media paths will live in Storage, not in a table for now, or optionally in
     - can insert `patrol_sessions`, `patrol_points`, `cache_reports`, `sos_events` where `volunteer_id = auth.uid()` (via FK).
   - Leaders/Analysts/Liaison:
     - can read all `cache_reports`, `incidents`, `sos_events`.
-- Use Supabase Auth’s `auth.uid()` in policies.
+- Use Supabase Auth's `auth.uid()` in policies.
 
 **2.3 Realtime**
 
@@ -331,14 +331,14 @@ Note: media paths will live in Storage, not in a table for now, or optionally in
 - Subscribe to `cache_reports` Realtime changes:
   - On insert: add marker & list item.
   - On update: update marker/list.
-- Optional: simple “toaster” or neon pulse when new report arrives.
+- Optional: simple "toaster" or neon pulse when new report arrives.
 
 **3.4 Futuristic styling**
 
 - Implement:
   - Dark background, neon cyan primary.
   - Orbitron headings, Inter text.
-  - Map container as a “holographic” card with subtle border glows.
+  - Map container as a "holographic" card with subtle border glows.
 
 ### Acceptance checklist
 
@@ -366,13 +366,15 @@ Note: media paths will live in Storage, not in a table for now, or optionally in
 **4.2 Patrol mode**
 
 - `Patrol` screen:
-  - “Start patrol” button:
+  - "Start patrol" button:
     - Creates `patrol_sessions` row in Supabase (`status="active"`).
   - While active:
     - Poll device location at low frequency (e.g. 30–60s).
+    - **Optimization:** Batch collected GPS points and send every 3-5 minutes to reduce network traffic and server load.
     - Insert `patrol_points` into Supabase.
-  - “Stop patrol”:
+  - "Stop patrol":
     - Update `patrol_sessions` with `ended_at` + `status="stopped"`.
+  - **Emergency override:** During SOS events, switch to immediate transmission of location points.
 
 **4.3 Cache report creation**
 
@@ -418,7 +420,7 @@ Note: media paths will live in Storage, not in a table for now, or optionally in
 - Web subscribes to `sos_events`.
 - When a new `active` SOS arrives:
   - Show marker on map with distinct colour.
-  - Show SOS in sidebar list (“open SOS events”).
+  - Show SOS in sidebar list ("open SOS events").
 
 **5.3 Push notifications (scaffolding)**
 
@@ -437,6 +439,20 @@ Note: media paths will live in Storage, not in a table for now, or optionally in
 - Web dashboard:
   - Call RPC or view to get `region_segments` + coverage metadata.
   - Overlay segments on map with colours based on `last_patrolled_at`.
+
+**5.5 Boat Finder Location Tracking for Leaders**
+
+- Web dashboard for leaders:
+  - Display active boat finder locations on map with distinct markers showing:
+    - Current position (most recent patrol point)
+    - Volunteer nickname/identifier
+    - Status indicator (active/idle)
+  - Option to view patrol history/trails for each boat finder
+  - Filter controls to show/hide specific volunteers or patrol sessions
+- Realtime updates:
+  - Subscribe to `patrol_points` changes with Supabase Realtime
+  - Update boat finder positions as new batched points arrive
+  - Leaders can trigger "request current position" for specific volunteers if needed
 
 ### Acceptance checklist
 
@@ -476,7 +492,7 @@ Note: media paths will live in Storage, not in a table for now, or optionally in
 **6.3 Web integration**
 
 - From web dashboard:
-  - Add button “Notify French police” on incident detail.
+  - Add button "Notify French police" on incident detail.
   - Clicking calls FastAPI endpoint.
   - Once successful, reload incident data from Supabase.
 
@@ -488,7 +504,7 @@ Note: media paths will live in Storage, not in a table for now, or optionally in
 ### Acceptance checklist
 
 - [ ] FastAPI can read Supabase data using service key.
-- [ ] Clicking “Notify authority” from web sends a real email (to test address).
+- [ ] Clicking "Notify authority" from web sends a real email (to test address).
 - [ ] Incident row in Supabase gets updated with `authority_email_sent_at`.
 
 ---
@@ -523,7 +539,7 @@ Note: media paths will live in Storage, not in a table for now, or optionally in
 
 **7.3 Web integration**
 
-- Add button “Generate AI summary” in incident detail panel.
+- Add button "Generate AI summary" in incident detail panel.
 - Display `summary_ai` as a neon-highlighted panel in UI.
 
 **7.4 Activity summary**
@@ -579,13 +595,13 @@ Note: media paths will live in Storage, not in a table for now, or optionally in
 
 **8.4 Export/report**
 
-- Simple “Download CSV” of cache_reports/incidents for a given period via Supabase query.
+- Simple "Download CSV" of cache_reports/incidents for a given period via Supabase query.
 - Optionally, have backend generate a PDF or text report using AI summary + charts.
 
 ### Acceptance checklist
 
 - [ ] Risk view and analytics charts use live data from Supabase.
-- [ ] UI feels cohesive, responsive, and “2100 active team”.
+- [ ] UI feels cohesive, responsive, and "2100 active team".
 - [ ] Data export works for basic reporting.
 
 ---
@@ -599,4 +615,68 @@ Note: media paths will live in Storage, not in a table for now, or optionally in
 3. Always use:
    - **Supabase** for Auth, DB, Realtime, Storage.
    - **FastAPI** for OpenAI + email + protected operations.
-4. Keep the **“year 2100 team ops”** aesthetic consistent across web + mobile.
+4. Keep the **"year 2100 team ops"** aesthetic consistent across web + mobile.
+
+---
+
+## Performance & Scaling Considerations
+
+When scaling this application to handle up to 5000 mobile devices, consider these optimizations:
+
+### Server-Side Optimizations
+
+1. **Database Scaling**:
+   - Leverage Supabase's built-in PostgreSQL scalability
+   - Use proper indexing on frequently queried columns (lat, lng, timestamps)
+   - Consider implementing database partitioning for historical data
+
+2. **API Layer Performance**:
+   - Deploy FastAPI behind a load balancer on Linode
+   - Implement connection pooling for database connections
+   - Add request rate limiting to prevent API abuse
+   - Use response caching for frequently accessed, slowly-changing data
+
+3. **Realtime Efficiency**:
+   - Enable selective subscriptions (subscribe only to needed channels)
+   - Implement proper error handling and reconnection strategies
+   - Consider limiting Realtime updates to critical data (e.g., SOS events always, patrol points less frequently)
+
+### Mobile Client Optimizations
+
+1. **Data Transmission**:
+   - Implement batched updates for patrol points as specified in section 4.2
+   - Use local caching to reduce redundant API requests
+   - Compress data before transmission
+   - Implement smart retry mechanisms with exponential backoff
+
+2. **Background Processing**:
+   - Optimize background location tracking to minimize battery drain
+   - Queue updates when offline for later transmission
+   - Prioritize critical events (SOS) over routine updates
+
+### Map Performance
+
+1. **Map Rendering**:
+   - Use map clustering for dense collections of markers
+   - Load only markers in the current viewport
+   - Implement virtual rendering for long lists of cache reports
+   - Consider using vector tiles for efficient map rendering
+
+2. **Asset Loading**:
+   - Serve map assets via CDN
+   - Implement proper asset caching strategies
+   - Lazy-load non-critical components and data
+
+### Deployment Architecture
+
+1. **Auto-scaling**:
+   - Configure Linode for horizontal scaling based on load
+   - Set up proper monitoring and alerting
+   - Implement graceful degradation strategies for peak loads
+
+2. **Testing Under Load**:
+   - Conduct regular load testing with simulated clients
+   - Monitor database query performance
+   - Test Realtime message delivery under heavy load
+
+By implementing these optimizations, the system should comfortably handle 5000 mobile devices while maintaining responsive performance and a good user experience.
